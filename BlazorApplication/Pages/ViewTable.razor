@@ -1,0 +1,99 @@
+﻿@page "/Viewtable"
+@using WebApi.Models
+@using BlazorApplication.HttpClient.IClientInterface
+@inject ITeamService TeamService;
+@inject IPlayerService PlayerService;
+
+
+<div class="filter-bar">
+    <div class="filters-container">
+        @*displays either the "funnel" icon or the "clear_funnel" icon, based on the value of doShowFilters*@
+        <img src="icons/@(doShowFilters ? "clear_" : "")funnel.png" class="funnel" @onclick="@(() => doShowFilters = !doShowFilters)" alt="Funnel"/>
+        @if (doShowFilters)
+        {
+            <div class="filter">
+                <label>ranking</label>
+                <input type="number" @bind="ranking"/>
+            </div>
+            <div class="filter">
+                <label>teams name</label>
+                <input type="text" @bind="teamname"/>
+            </div>
+        }
+    </div>
+</div>
+
+<div>
+    <button @onclick="LoadTodos">Load</button>
+</div>
+
+
+@if (teams == null) {
+    <p>
+        <em>Loading...</em>
+    </p>
+}
+<table class="table">
+    
+   @foreach (Teams teams1 in teams!)
+   {
+       @foreach (Players players in teams1.PlayersCollection)
+       {
+           <thead>
+           <p> @teams1.TeamName, coached by @teams1.NameOfCoach with ranking @teams1.Ranking</p>
+           <tr>
+               <th>name</th>
+               <th>shirt number </th>
+               <th>Salary</th>
+               <th>Goals this season</th>
+               <th>Position</th>
+           </tr>                                                  
+           </thead>
+           <tbody>
+           <tr>
+               <td>@players.Name</td>
+               <td>@players.ShirtNumber</td>
+               <td>@players.Salary</td>
+               <td>@players.GoalsThisSeason</td>
+               <td>@players.Position</td>
+               @* <td> *@
+               @*     <label @onclick="@(() => RemoveToy(toy.Id))" style="cursor:pointer; color: red; font-weight: bold"> *@
+               @*         &#x2717; *@
+               @*     </label> *@
+               @* </td> *@
+               
+           </tr>
+           </tbody>
+       }
+   }
+</table>
+    <br/>
+    <br/>
+
+@if (!string.IsNullOrEmpty(errorLabel)) {
+    <label style="color: red">@errorLabel</label>
+}
+
+@code{
+
+    private IEnumerable<Teams>? teams= new List<Teams>();
+    private string teamname = "";
+    private int ranking;
+    private string? errorLabel="";
+    private bool doShowFilters=false;
+    
+    
+    private async void LoadTodos()
+    {
+        try
+        {
+            teams = await TeamService.GetAllTeamAsync(teamname,ranking);
+            Console.WriteLine(teams.Count());
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            errorLabel = e.Message;
+        }
+    }
+}

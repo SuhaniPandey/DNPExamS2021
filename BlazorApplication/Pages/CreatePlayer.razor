@@ -1,0 +1,106 @@
+﻿@page "/CreatePlayer"
+@using WebApi.Models
+@using BlazorApplication.HttpClient.IClientInterface
+@inject ITeamService TeamService;
+@inject IPlayerService PlayerService;
+<h3>CreatePlayer</h3>
+
+<div class="card">
+    <h3>Create User</h3>
+    <div class="form-group field">
+        <label>Name:</label>
+        <input type="text" @bind="Name" @bind:event="oninput"/>
+
+        <label>shirtNumber:</label>
+        <input type="number" @bind="shirtNumber" @bind:event="oninput"/>
+        <label>Salary:</label>
+        <input type="number" @bind="Salary" @bind:event="oninput"/>
+        
+        <label>position:</label>
+        <input type="text" @bind="position" @bind:event="oninput"/>
+        <label>GoalsThisSeason:</label>
+        <input type="text" @bind="GoalsThisSeason" @bind:event="oninput"/>
+        
+         <div class="form-group field">
+                    <span>
+                        <label>Team:</label>
+                    </span>
+                    <span>
+                        <select @bind="teamsName">      
+                            <option selected> Choose team </option>
+                            
+                                @foreach (var team in teams) {
+                                    <option> @team.TeamName</option>
+                                }
+                            
+                        </select>
+                    </span>
+                </div>
+        
+        @if (!string.IsNullOrEmpty(resultMsg))
+        {
+            <label style="color: @color">@resultMsg</label>
+        }
+    </div>
+    <div class="button-row">
+        <button @onclick="Create" class="acceptbtn">Create</button>
+    </div>
+</div>
+
+
+@code {
+    private IEnumerable<Teams>? teams= new List<Teams>();
+    private string teamsName;
+    private string Name = "";
+    private int shirtNumber;
+    private int ranking;
+    private decimal Salary;
+    private int GoalsThisSeason;
+    private string position = "";
+    private string color = "";
+
+    private string resultMsg = "";
+
+    protected override async void OnInitialized()
+    {
+        resultMsg = "";
+        try
+        {
+            teams = await TeamService.getAllChildren();
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            resultMsg = e.Message;
+        }
+    }
+
+    private async Task Create()
+    {
+        resultMsg = "";//to hold any message we display to the user 
+
+        if (String.IsNullOrEmpty(teamsName))
+        {
+            resultMsg = "You must select an teams";
+            return;
+        }
+        if (string.IsNullOrEmpty(Name))
+        {
+            resultMsg = "Name cannot be empty";
+            return;
+        }
+        try
+        {
+            await PlayerService.CreateAsync(new Players(Name,shirtNumber,Salary,GoalsThisSeason,position),teamsName);
+            
+            resultMsg = "player successfully created";
+            color = "green";
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            resultMsg = e.Message;
+            color = "red";
+        }
+    }
+}

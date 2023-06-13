@@ -1,0 +1,53 @@
+﻿@page "/CreateTeams"
+@using BlazorApplication.HttpClient.IClientInterface
+@using WebApi.Models
+@inject ITeamService TeamService;
+
+<div class="card">
+    <h3>Create User</h3>
+    <div class="form-group field">
+        <label>name:</label>
+        
+        <input type="text" @bind="Name" @bind:event="oninput"/>
+        <label>ranking:</label>
+        <input type="number" @bind="ranking" @bind:event="oninput"/>
+        
+        <label>name of coach:</label>
+        <input type="text" @bind="nameOfCoach" @bind:event="oninput"/>
+        
+        @if (!string.IsNullOrEmpty(resultMsg))
+        {
+            <label style="color: @color">@resultMsg</label>
+        }
+    </div>
+    <div class="button-row">
+        <button @onclick="Create" class="acceptbtn">Create</button>
+    </div>
+</div>
+
+
+@code {
+    private string Name = "";
+    private int ranking;
+    private string nameOfCoach = "";
+    private string  resultMsg = "";
+    private string color = "";
+    
+    private async Task Create()
+    {
+        resultMsg = "";//to hold any message we display to the user 
+
+        try
+        {
+            await TeamService.CreateAsync(new Teams(Name,nameOfCoach,ranking));
+            resultMsg = "team successfully created";
+            color = "green";
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            resultMsg = e.Message;
+            color = "red";
+        }
+    }
+}
